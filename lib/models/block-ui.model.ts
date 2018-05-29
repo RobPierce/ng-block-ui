@@ -13,6 +13,11 @@ export interface NgBlockUI {
     isActive: boolean;
 
     /**
+     * Number of start method calls for instance
+     */
+    queuedCalls: number;
+
+    /**
      * Starts blocking for BlockUI instance
      */
     start(message?: any): void;

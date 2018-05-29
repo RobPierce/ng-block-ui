@@ -63,15 +63,17 @@ export class BlockUIContentComponent implements OnInit, AfterViewInit, AfterView
 
   ngAfterViewInit() {
     try {
-      if (this.templateCmp) {
-        if (this.templateCmp instanceof TemplateRef) {
-          this.templateOutlet.createEmbeddedView(this.templateCmp);
-        } else {
-            const templateComp = this.resolver.resolveComponentFactory(this.templateCmp);
-            this.templateCompRef = this.templateOutlet.createComponent(templateComp);
+      if (!this.templateCmp) {
+        return false;
+      }
 
-            this.updateBlockTemplate(this.message);
-        }
+      if (this.templateCmp instanceof TemplateRef) {
+        this.templateOutlet.createEmbeddedView(this.templateCmp);
+      } else {
+        const templateComp = this.resolver.resolveComponentFactory(this.templateCmp);
+        this.templateCompRef = this.templateOutlet.createComponent(templateComp);
+
+        this.updateBlockTemplate(this.message);
       }
     } catch (error) {
       console.error('ng-block-ui:', error);
@@ -119,6 +121,7 @@ export class BlockUIContentComponent implements OnInit, AfterViewInit, AfterView
   private onStart({ name, message }: BlockUIEvent) {
     if (name === this.name) {
       this.active = true;
+      this.blockUI.blockUIInstances[name].queuedCalls++;
       this.message = message || this.defaultMessage || this.settings.message;
       this.updateBlockTemplate(this.message);
       this.changeDetectionRef.detectChanges();
@@ -127,11 +130,19 @@ export class BlockUIContentComponent implements OnInit, AfterViewInit, AfterView
 
   private onStop({ name, action }: BlockUIEvent) {
     const { delayStart } = this.timeouts;
+    const { queuedCalls } = this.blockUI.blockUIInstances[name];
+    const activeCount = action === BlockUIActions.RESET ? 0 : queuedCalls - 1;
 
     if (name === this.name || action === BlockUIActions.RESET) {
       delayStart && clearTimeout(delayStart);
-      this.active = false;
-      this.changeDetectionRef.detectChanges();
+
+      if (activeCount <= 0) {
+        this.active = false;
+        this.blockUI.blockUIInstances[name].queuedCalls = 0;
+        this.changeDetectionRef.detectChanges();
+      } else {
+        this.blockUI.blockUIInstances[name].queuedCalls = activeCount;
+      }
     }
   }
 

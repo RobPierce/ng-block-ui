@@ -36,14 +36,17 @@ describe('block-ui-content component', () => {
       TestBed.configureTestingModule({
         imports: [ BlockUIModule.forRoot() ],
         declarations: [ TestComp ]
-      })
-        .compileComponents();
+      }).compileComponents();
 
       cf = TestBed.createComponent(TestComp);
       cf.detectChanges();
 
       testCmp = cf.debugElement.componentInstance;
       blkContComp = cf.debugElement.query(By.directive(BlockUIContentComponent));
+    });
+
+    beforeEach(() => {
+      testCmp.blockUI.reset();
     });
 
     it('block-ui-wrapper is not active by default', () => {

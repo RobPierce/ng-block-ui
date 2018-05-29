@@ -12,7 +12,7 @@ import { BlockUIService } from '../../index';
 @Injectable()
 export class BlockUIInstanceService {
   blockUISettings: BlockUISettings | any = {};
-  blockUIInstances: NgBlockUI[] = [];
+  blockUIInstances: any = {};
   private blockUISubject: ReplaySubject<any> = new ReplaySubject();
   private blockUIObservable: Observable<any> = this.blockUISubject.asObservable();
 
@@ -36,10 +36,11 @@ export class BlockUIInstanceService {
       update: this.dispatch(this.blockUISubject, BlockUIActions.UPDATE, name),
       stop: this.dispatch(this.blockUISubject, BlockUIActions.STOP, name),
       reset: this.dispatch(this.blockUISubject, BlockUIActions.RESET, name),
-      unsubscribe: this.dispatch(this.blockUISubject, BlockUIActions.UNSUBSCRIBE, name)
+      unsubscribe: this.dispatch(this.blockUISubject, BlockUIActions.UNSUBSCRIBE, name),
+      queuedCalls: 0
     } as NgBlockUI;
 
-    this.blockUIInstances.push(blockUI);
+    this.blockUIInstances[name] = this.blockUIInstances[name] || blockUI;
 
     return blockUI;
   }
@@ -63,9 +64,7 @@ export class BlockUIInstanceService {
     }
 
     if (isActive !== null) {
-      this.blockUIInstances.forEach(i =>
-        i.isActive = i.name === name ? isActive : i.isActive
-      );
+      this.blockUIInstances[name].isActive = isActive;
     }
   }
 
